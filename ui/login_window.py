@@ -34,7 +34,7 @@ class LoginWindow(QDialog):
         usuario = self.usuario_input.text()
         password = self.password_input.text()
 
-        resultado = self.usuario_service.autenticar(usuario, password)
+        resultado = self.usuario_service.login(usuario, password)
 
         if resultado:
             self.abrir_inventario(usuario)
