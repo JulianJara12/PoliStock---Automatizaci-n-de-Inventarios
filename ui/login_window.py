@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QPushButton, QLabel
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QPushButton, QLabel, QMessageBox
 from services.usuario_service import UsuarioService
 
 
@@ -10,10 +10,13 @@ class LoginWindow(QDialog):
         self.abrir_inventario = abrir_inventario
         self.usuario_service = UsuarioService()
 
+        self.setWindowTitle("Login")
+
         layout = QVBoxLayout()
 
         self.usuario_input = QLineEdit()
         self.password_input = QLineEdit()
+
         self.password_input.setEchoMode(QLineEdit.Password)
 
         boton = QPushButton("Ingresar")
@@ -37,5 +40,10 @@ class LoginWindow(QDialog):
         resultado = self.usuario_service.login(usuario, password)
 
         if resultado:
-            self.abrir_inventario(usuario)
+
+            self.abrir_inventario(resultado)
             self.close()
+
+        else:
+
+            QMessageBox.warning(self, "Error", "Credenciales incorrectas")

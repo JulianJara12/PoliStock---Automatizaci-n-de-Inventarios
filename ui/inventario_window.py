@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 
 from services.producto_service import ProductoService
 from services.inventario_service import InventarioService
+from ui.usuarios_window import UsuariosWindow
 
 
 class InventarioWindow(QWidget):
@@ -15,12 +16,13 @@ class InventarioWindow(QWidget):
         super().__init__()
 
         self.usuario = usuario
+        self.ventana_usuarios = None
 
         self.setWindowTitle("Sistema de Inventario")
 
         layout_principal = QVBoxLayout()
 
-        # -------- TABLA DE PRODUCTOS --------
+        # TABLA PRODUCTOS
         self.tabla = QTableWidget()
         self.tabla.setColumnCount(5)
         self.tabla.setHorizontalHeaderLabels(
@@ -29,7 +31,7 @@ class InventarioWindow(QWidget):
 
         layout_principal.addWidget(self.tabla)
 
-        # -------- FORMULARIO CREAR PRODUCTO --------
+        # FORM CREAR PRODUCTO
         form_layout = QHBoxLayout()
 
         self.input_codigo = QLineEdit()
@@ -52,7 +54,7 @@ class InventarioWindow(QWidget):
 
         layout_principal.addLayout(form_layout)
 
-        # -------- MOVIMIENTOS INVENTARIO --------
+        # MOVIMIENTOS
         movimiento_layout = QHBoxLayout()
 
         self.input_cantidad = QLineEdit()
@@ -71,17 +73,21 @@ class InventarioWindow(QWidget):
 
         layout_principal.addLayout(movimiento_layout)
 
-        # -------- BOTÓN ACTUALIZAR --------
+        # BOTONES
         btn_actualizar = QPushButton("Actualizar Tabla")
         btn_actualizar.clicked.connect(self.cargar_productos)
 
+        btn_usuarios = QPushButton("Administrar Usuarios")
+        btn_usuarios.clicked.connect(self.abrir_usuarios)
+
         layout_principal.addWidget(btn_actualizar)
+        layout_principal.addWidget(btn_usuarios)
 
         self.setLayout(layout_principal)
 
         self.cargar_productos()
 
-    # -------- CARGAR PRODUCTOS --------
+    # CARGAR PRODUCTOS
 
     def cargar_productos(self):
 
@@ -97,7 +103,7 @@ class InventarioWindow(QWidget):
             self.tabla.setItem(fila, 3, QTableWidgetItem(str(producto.precio)))
             self.tabla.setItem(fila, 4, QTableWidgetItem(str(producto.stock)))
 
-    # -------- CREAR PRODUCTO --------
+    # CREAR PRODUCTO
 
     def crear_producto(self):
 
@@ -110,16 +116,22 @@ class InventarioWindow(QWidget):
             return
 
         try:
-            ProductoService.crear_producto(codigo, nombre, float(precio))
+
+            ProductoService.crear_producto(
+                codigo,
+                nombre,
+                float(precio)
+            )
 
             QMessageBox.information(self, "Éxito", "Producto creado")
 
             self.cargar_productos()
 
         except Exception as e:
+
             QMessageBox.warning(self, "Error", str(e))
 
-    # -------- OBTENER PRODUCTO SELECCIONADO --------
+    # PRODUCTO SELECCIONADO
 
     def obtener_producto_seleccionado(self):
 
@@ -132,7 +144,7 @@ class InventarioWindow(QWidget):
 
         return producto_id
 
-    # -------- REGISTRAR ENTRADA --------
+    # ENTRADA
 
     def registrar_entrada(self):
 
@@ -144,20 +156,15 @@ class InventarioWindow(QWidget):
 
         cantidad = int(self.input_cantidad.text())
 
-        try:
+        InventarioService.registrar_entrada(
+            producto_id,
+            cantidad,
+            self.usuario.id_usuario
+        )
 
-            InventarioService.registrar_entrada(
-                producto_id,
-                cantidad,
-                self.usuario.id_usuario
-            )
+        self.cargar_productos()
 
-            self.cargar_productos()
-
-        except Exception as e:
-            QMessageBox.warning(self, "Error", str(e))
-
-    # -------- REGISTRAR SALIDA --------
+    # SALIDA
 
     def registrar_salida(self):
 
@@ -169,15 +176,20 @@ class InventarioWindow(QWidget):
 
         cantidad = int(self.input_cantidad.text())
 
-        try:
+        InventarioService.registrar_salida(
+            producto_id,
+            cantidad,
+            self.usuario.id_usuario
+        )
 
-            InventarioService.registrar_salida(
-                producto_id,
-                cantidad,
-                self.usuario.id_usuario
-            )
+        self.cargar_productos()
 
-            self.cargar_productos()
+    # ABRIR USUARIOS
 
-        except Exception as e:
-            QMessageBox.warning(self, "Error", str(e))
+    def abrir_usuarios(self):
+
+        if self.ventana_usuarios is None:
+
+            self.ventana_usuarios = UsuariosWindow()
+
+        self.ventana_usuarios.show()
