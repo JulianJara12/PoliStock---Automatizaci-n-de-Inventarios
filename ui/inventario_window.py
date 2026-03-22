@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QTableWidgetItem,
     QPushButton, QLabel, QLineEdit,
-    QMessageBox
+    QMessageBox, QInputDialog
 )
 
 from services.producto_service import ProductoService
@@ -24,9 +24,9 @@ class InventarioWindow(QWidget):
 
         # TABLA PRODUCTOS
         self.tabla = QTableWidget()
-        self.tabla.setColumnCount(5)
+        self.tabla.setColumnCount(6)
         self.tabla.setHorizontalHeaderLabels(
-            ["ID", "Código", "Nombre", "Precio", "Stock"]
+            ["ID", "Código", "Nombre", "Precio", "Stock", "Activo"]
         )
 
         layout_principal.addWidget(self.tabla)
@@ -46,11 +46,15 @@ class InventarioWindow(QWidget):
         btn_crear = QPushButton("Crear Producto")
         btn_crear.clicked.connect(self.crear_producto)
 
-        form_layout.addWidget(QLabel("Nuevo Producto:"))
+        btn_eliminar = QPushButton("Eliminar Producto")
+        btn_eliminar.clicked.connect(self.eliminar_producto)
+
+        form_layout.addWidget(QLabel("Producto:"))
         form_layout.addWidget(self.input_codigo)
         form_layout.addWidget(self.input_nombre)
         form_layout.addWidget(self.input_precio)
         form_layout.addWidget(btn_crear)
+        form_layout.addWidget(btn_eliminar)
 
         layout_principal.addLayout(form_layout)
 
@@ -66,7 +70,7 @@ class InventarioWindow(QWidget):
         btn_entrada.clicked.connect(self.registrar_entrada)
         btn_salida.clicked.connect(self.registrar_salida)
 
-        movimiento_layout.addWidget(QLabel("Movimiento:"))
+        movimiento_layout.addWidget(QLabel("Cantidad:"))
         movimiento_layout.addWidget(self.input_cantidad)
         movimiento_layout.addWidget(btn_entrada)
         movimiento_layout.addWidget(btn_salida)
@@ -102,6 +106,7 @@ class InventarioWindow(QWidget):
             self.tabla.setItem(fila, 2, QTableWidgetItem(producto.nombre))
             self.tabla.setItem(fila, 3, QTableWidgetItem(str(producto.precio)))
             self.tabla.setItem(fila, 4, QTableWidgetItem(str(producto.stock)))
+            self.tabla.setItem(fila, 5, QTableWidgetItem(str(producto.activo)))
 
     # CREAR PRODUCTO
 
@@ -164,9 +169,13 @@ class InventarioWindow(QWidget):
 
         self.cargar_productos()
 
+        
+        self.input_cantidad.clear()
+
     # SALIDA
 
     def registrar_salida(self):
+
 
         producto_id = self.obtener_producto_seleccionado()
 
@@ -184,6 +193,8 @@ class InventarioWindow(QWidget):
 
         self.cargar_productos()
 
+        self.input_cantidad.clear()
+
     # ABRIR USUARIOS
 
     def abrir_usuarios(self):
@@ -193,3 +204,24 @@ class InventarioWindow(QWidget):
             self.ventana_usuarios = UsuariosWindow()
 
         self.ventana_usuarios.show()
+
+    # ELIMINAR PRODUCTOS
+
+    def eliminar_producto(self):
+        id_producto, ok = QInputDialog.getInt(
+            self, "Elimar producto",
+            "Ingrese el ID del producto:"
+        )
+
+        if not ok:
+            return
+        try:
+            ProductoService.eliminar_producto(id_producto)
+
+            QMessageBox.information(self, "Exito", "Producto eliminado")
+            self.cargar_productos()
+        
+        except Exception as e:
+            QMessageBox.warning(self, "Error", str(e))
+
+        self.cargar_productos
