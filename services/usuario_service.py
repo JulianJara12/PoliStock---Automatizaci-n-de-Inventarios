@@ -31,12 +31,8 @@ class UsuarioService:
     @staticmethod
     def crear_usuario(username, password, rolId):
         
-        print ("entro al service")
-
         conexion = conectar()
         cursor = conexion.cursor()
-
-        #password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
         query = """
         INSERT INTO usuarios (username, password_hash, rol_id)
@@ -45,6 +41,23 @@ class UsuarioService:
         cursor.execute(query, (username,password, rolId))
 
         conexion.commit()
-        print ("insert ejecutado")
+        cursor.close()
+        conexion.close()
+
+    @staticmethod
+    def eliminar_usuario(id_usuario):
+
+        conexion = conectar()
+        cursor = conexion.cursor()
+
+        query = """
+        DELETE FROM usuarios
+        WHERE id_usuario = %s
+        """
+        cursor.execute(query,(id_usuario,))
+        if cursor.rowcount == 0:
+            raise Exception ("No existe un usuario con ese ID")
+        
+        conexion.commit()
         cursor.close()
         conexion.close()

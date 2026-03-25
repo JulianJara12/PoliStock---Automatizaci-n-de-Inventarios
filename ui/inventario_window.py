@@ -2,8 +2,10 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QTableWidgetItem,
     QPushButton, QLabel, QLineEdit,
-    QMessageBox, QInputDialog
+    QMessageBox, QInputDialog, QDialog
 )
+
+from datetime import datetime
 
 from services.producto_service import ProductoService
 from services.inventario_service import InventarioService
@@ -84,8 +86,12 @@ class InventarioWindow(QWidget):
         btn_usuarios = QPushButton("Administrar Usuarios")
         btn_usuarios.clicked.connect(self.abrir_usuarios)
 
+        btn_historial_movimientos = QPushButton("Historial Movimientos")
+        btn_historial_movimientos.clicked.connect(self.historial_movimientos)
+
         layout_principal.addWidget(btn_actualizar)
         layout_principal.addWidget(btn_usuarios)
+        layout_principal.addWidget(btn_historial_movimientos)
 
         self.setLayout(layout_principal)
 
@@ -115,8 +121,9 @@ class InventarioWindow(QWidget):
         codigo = self.input_codigo.text()
         nombre = self.input_nombre.text()
         precio = self.input_precio.text()
+        cantidad = self.input_cantidad.text()
 
-        if not codigo or not nombre or not precio:
+        if not codigo or not nombre or not precio or not cantidad:
             QMessageBox.warning(self, "Error", "Campos incompletos")
             return
 
@@ -125,12 +132,18 @@ class InventarioWindow(QWidget):
             ProductoService.crear_producto(
                 codigo,
                 nombre,
-                float(precio)
+                float(precio),
+                cantidad
             )
 
             QMessageBox.information(self, "Éxito", "Producto creado")
 
             self.cargar_productos()
+
+            self.input_codigo.clear()
+            self.input_nombre.clear()
+            self.input_precio.clear()
+            self.input_cantidad.clear()
 
         except Exception as e:
 
@@ -225,3 +238,36 @@ class InventarioWindow(QWidget):
             QMessageBox.warning(self, "Error", str(e))
 
         self.cargar_productos
+    
+    def historial_movimientos(self):
+
+     dialogo = QDialog(self)
+     dialogo.setWindowTitle("Historial de movimientos")
+     dialogo.resize(700, 500)
+
+     layout = QVBoxLayout()
+
+     tabla = QTableWidget()
+     movimientos = InventarioService.obtener_movimientos()
+
+     tabla.setRowCount(len(movimientos))
+     tabla.setColumnCount(6)
+     tabla.setHorizontalHeaderLabels(["ID", "Producto", "Tipo", "Cantidad", "Usuario", "Fecha"])
+
+     for fila_idx, fila in enumerate(movimientos):
+         for col_idx, valor in enumerate(fila):
+             
+             if isinstance(valor,datetime):
+                valor = valor.strftime("%Y-%m-%d %H:%M")
+
+             tabla.setItem(fila_idx, col_idx, QTableWidgetItem(str(valor)))
+
+     btn_salir = QPushButton("Cerrar")
+     btn_salir.clicked.connect(dialogo.close)
+
+     layout.addWidget(tabla)
+     layout.addWidget(btn_salir)
+
+     dialogo.setLayout(layout)
+
+     dialogo.exec_()

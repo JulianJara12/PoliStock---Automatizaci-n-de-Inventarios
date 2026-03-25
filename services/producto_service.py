@@ -32,17 +32,17 @@ class ProductoService:
 
 
     @staticmethod
-    def crear_producto(codigo, nombre, precio):
+    def crear_producto(codigo, nombre, precio, cantidad):
 
         conexion = conectar()
         cursor = conexion.cursor()
 
         query = """
-        INSERT INTO productos (codigo, nombre, precio)
-        VALUES (%s,%s,%s)
+        INSERT INTO productos (codigo, nombre, precio, stock)
+        VALUES (%s,%s,%s,%s)
         """
 
-        cursor.execute(query, (codigo, nombre, precio))
+        cursor.execute(query, (codigo, nombre, precio, cantidad))
 
         conexion.commit()
 

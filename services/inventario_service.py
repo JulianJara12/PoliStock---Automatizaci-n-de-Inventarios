@@ -57,3 +57,22 @@ class InventarioService:
 
         cursor.close()
         conexion.close()
+
+    @staticmethod
+    def obtener_movimientos():
+        conexion = conectar()
+        cursor = conexion.cursor()
+
+        cursor.execute("""
+        SELECT m.id_movimiento, p.nombre, m.tipo, m.cantidad, m.usuario_id, m.fecha
+        FROM movimientos m
+        JOIN productos p ON m.producto_id = p.id_producto
+        ORDER BY m.id_movimiento DESC
+        """)
+
+        movimientos = cursor.fetchall()
+
+        cursor.close()
+        conexion.close()
+
+        return movimientos

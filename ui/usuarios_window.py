@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QInputDialog
 from services.usuario_service import UsuarioService
 
 
@@ -24,6 +24,9 @@ class UsuariosWindow(QWidget):
 
         btn_crear = QPushButton("Crear usuario")
         btn_crear.clicked.connect(self.crear_usuario)
+        btn_eliminar = QPushButton("Elimnar Usuario")
+        btn_eliminar.clicked.connect(self.eliminar_usuario)
+
 
         layout.addWidget(QLabel("Nuevo usuario"))
         layout.addWidget(self.input_usuario)
@@ -31,6 +34,7 @@ class UsuariosWindow(QWidget):
         layout.addWidget(self.input_rolId)
         
         layout.addWidget(btn_crear)
+        layout.addWidget(btn_eliminar)
 
         self.setLayout(layout)
 
@@ -55,3 +59,24 @@ class UsuariosWindow(QWidget):
 
      except Exception as e:
         QMessageBox.critical(self, "Error", str(e))
+      
+    def eliminar_usuario(self):
+       
+      id_usuario, ok = QInputDialog.getInt(
+         self, "Eliminar usuario",
+         "Ingrese el ID del usuario a eliminar"
+      )
+
+      if not ok:
+          QMessageBox.warning(self, "Error", "Campo Vacio")
+          return
+       
+      try:
+          UsuarioService.eliminar_usuario(id_usuario)
+
+          QMessageBox.information(self, "Correcto", "Usuario Eliminado")
+
+          self.input_usuario.clear()
+
+      except Exception as e:
+          print(self, "Error", str(e))
