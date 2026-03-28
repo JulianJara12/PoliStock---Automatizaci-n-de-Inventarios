@@ -90,9 +90,13 @@ class InventarioWindow(QWidget):
         btn_historial_movimientos = QPushButton("Historial Movimientos")
         btn_historial_movimientos.clicked.connect(self.historial_movimientos)
 
+        btn_reporte_inventario = QPushButton("Generar Reporte")
+        btn_reporte_inventario.clicked.connect(lambda: self.generar_pdf_inventario(self.tabla))
+
         layout_principal.addWidget(btn_actualizar)
         layout_principal.addWidget(btn_usuarios)
         layout_principal.addWidget(btn_historial_movimientos)
+        layout_principal.addWidget(btn_reporte_inventario)
 
         self.setLayout(layout_principal)
 
@@ -322,3 +326,43 @@ class InventarioWindow(QWidget):
     # Guardar PDF en la carpeta actual
         pdf.output("reporte_historial.pdf")
         print("PDF generado correctamente!")
+
+
+    def generar_pdf_inventario(self, tabla):
+        pdf = FPDF(orientation="L", unit="mm", format="A4")  # Horizontal
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_font("Arial", "B", 14)
+        pdf.cell(0, 10, "Reporte de Inventario Actual", ln=True, align="C")
+        pdf.ln(5)
+
+    # Anchos personalizados para cada columna (ajusta si necesitas más espacio)
+        anchos = [20, 40, 60, 30, 25, 25]  # ID, Código, Nombre, Precio, Stock, Activo
+
+    # --- Cabecera de tabla ---
+        pdf.set_font("Arial", "B", 12)
+        for col in range(tabla.columnCount()):
+            pdf.cell(anchos[col], 10, tabla.horizontalHeaderItem(col).text(), border=1, align="C")
+        pdf.ln()
+
+    # --- Filas de datos ---
+        pdf.set_font("Arial", "", 11)
+        for fila in range(tabla.rowCount()):
+            y_inicio = pdf.get_y()
+            x_inicio = pdf.get_x()
+            max_y = y_inicio
+
+            for col in range(tabla.columnCount()):
+                item = tabla.item(fila, col)
+                texto = item.text() if item else ""
+                pdf.set_xy(x_inicio, y_inicio)
+                pdf.multi_cell(anchos[col], 7, texto, border=1)
+                if pdf.get_y() > max_y:
+                    max_y = pdf.get_y()
+                x_inicio += anchos[col]
+
+            pdf.set_y(max_y)
+
+    # Guardar PDF
+        pdf.output("reporte_inventario.pdf")
+        print("PDF de inventario generado correctamente!")  
