@@ -10,6 +10,7 @@ from datetime import datetime
 from services.producto_service import ProductoService
 from services.inventario_service import InventarioService
 from ui.usuarios_window import UsuariosWindow
+from fpdf import FPDF
 
 
 class InventarioWindow(QWidget):
@@ -262,12 +263,62 @@ class InventarioWindow(QWidget):
 
              tabla.setItem(fila_idx, col_idx, QTableWidgetItem(str(valor)))
 
+     btn_pdf = QPushButton("generar pdf")
+     btn_pdf.clicked.connect(lambda: self.generar_pdf(tabla))
+
      btn_salir = QPushButton("Cerrar")
      btn_salir.clicked.connect(dialogo.close)
 
      layout.addWidget(tabla)
+     layout.addWidget(btn_pdf)
      layout.addWidget(btn_salir)
 
      dialogo.setLayout(layout)
 
      dialogo.exec_()
+
+
+    def generar_pdf(self, tabla):
+        pdf = FPDF(orientation="L", unit="mm", format="A4")
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_font("Arial", "B", 14)
+        pdf.cell(0, 10, "Reporte de Historial de Movimientos", ln=True, align="C")
+        pdf.ln(5)
+
+        anchos = [15, 60, 30, 20, 40, 40]  
+
+
+        pdf.set_font("Arial", "B", 12)
+        for col in range(tabla.columnCount()):
+            pdf.cell(anchos[col], 10, tabla.horizontalHeaderItem(col).text(), border=1, align="C")
+        pdf.ln()
+
+        pdf.set_font("Arial", "", 11)
+        for fila in range(tabla.rowCount()):
+            y_inicio = pdf.get_y()  # Posición vertical al inicio de la fila
+            x_inicio = pdf.get_x()  # Posición horizontal al inicio
+            max_y = y_inicio
+
+        # Primero dibujamos cada celda con multi_cell
+            for col in range(tabla.columnCount()):
+                item = tabla.item(fila, col)
+                texto = item.text() if item else ""
+            
+            # Guardamos posición para cada celda
+                pdf.set_xy(x_inicio, y_inicio)
+                pdf.multi_cell(anchos[col], 7, texto, border=1)
+            
+            # Calculamos hasta dónde llegó esta celda verticalmente
+                if pdf.get_y() > max_y:
+                    max_y = pdf.get_y()
+            
+            # Avanzamos la posición horizontal para la siguiente celda
+                x_inicio += anchos[col]
+
+        # Ajustamos el cursor para la siguiente fila
+            pdf.set_y(max_y)
+
+    # Guardar PDF en la carpeta actual
+        pdf.output("reporte_historial.pdf")
+        print("PDF generado correctamente!")
